@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>С Днём Рождения, Виталик!</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    overflow: hidden;
+    text-align: center;
+    color: red;
+    background: url('https://avatars.dzeninfra.ru/get-zen_doc/5231858/pub_6345f06defe1e4711abe1fa7_634606e494270830e3fe23a9/scale_1200') no-repeat center center/cover;
+    background-size: cover;
+    transition: background 1s ease-in-out;
+  }
+  h1, p { margin: 0.5em; position: relative; z-index: 2; }
+  button {
+    position: absolute;
+    bottom: 20px;
+    padding: 10px 20px;
+    font-size: 18px;
+    z-index: 2;
+    cursor: pointer;
+  }
+  canvas { position: absolute; top: 0; left: 0; }
+</style>
+</head>
+<body>
+
+<div>
+  <h1>С Днём Рождения, Виталик! 🎉</h1>
+  <p>Этот сайт я сделал на коленке, извини так вышло я без подарка физического, но зато с цифровым поздравляю тебя<br>
+  Желаю счастья, всего хорошего, чтобы рос и не болел, всех благ тебе, скорейшего окончания того пиздеца, который творится в мире, и чтобы у тебя всё всегда было так, как ты того желаешь. Не грусти и чаще улыбайся, ну и главное хуй до колен 😎<br>
+  Пусть спина и колени не болят, и чтобы сам не покрывался плесенью, старина</p>
+</div>
+
+<button id="splashBtn">Нажми</button>
+
+<audio id="music" src="Videoclub Mai.mp3" loop></audio>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Музыка на 30%
+const music = document.getElementById('music');
+music.volume = 0.3;
+document.body.addEventListener('click', () => { music.play(); });
+
+// Фон
+const backgrounds = [
+  'https://avatars.dzeninfra.ru/get-zen_doc/5231858/pub_6345f06defe1e4711abe1fa7_634606e494270830e3fe23a9/scale_1200',
+  'https://assets.change.org/photos/1/ac/sl/pYaCsLVznDYdOzK-1600x900-noPad.jpg?1636036393'
+];
+let bgIndex = 0;
+setInterval(() => {
+  bgIndex = (bgIndex + 1) % backgrounds.length;
+  document.body.style.background = `url('${backgrounds[bgIndex]}') no-repeat center center/cover`;
+}, 3000);
+
+// Раздельные массивы частиц
+let liquidParticles = [];
+let fireworkParticles = [];
+
+// Класс для частиц
+class Particle {
+  constructor(x, y, vx, vy, radius, alpha, color) {
+    this.x = x; this.y = y;
+    this.vx = vx; this.vy = vy;
+    this.radius = radius;
+    this.alpha = alpha;
+    this.color = color;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    if(this.color==='white') this.vy += 0.1; // гравитация для жидкости
+    this.alpha -= 0.01;
+  }
+  draw() {
+    ctx.fillStyle = this.color==='white' ? `rgba(255,255,255,${this.alpha})` : this.color;
+    ctx.beginPath();
+    if(this.color==='white'){
+      ctx.ellipse(this.x, this.y, this.radius*1.5, this.radius, 0, 0, Math.PI*2);
+    } else {
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+    }
+    ctx.fill();
+  }
+}
+
+// Кнопка — жидкость
+document.getElementById('splashBtn').addEventListener('click', () => {
+  for(let i=0;i<50;i++){
+    liquidParticles.push(new Particle(0, canvas.height/2 + Math.random()*100 - 50, Math.random()*5 + 2, Math.random()*-5 -2, Math.random()*15+5,1,'white'));
+    liquidParticles.push(new Particle(canvas.width, canvas.height/2 + Math.random()*100 - 50, -(Math.random()*5 + 2), Math.random()*-5 -2, Math.random()*15+5,1,'white'));
+  }
+});
+
+// Фейерверки сверху
+function createFirework() {
+  const colors = ['#ff0','#f0f','#0ff','#f00','#0f0','#00f'];
+  const x = Math.random()*(canvas.width-200)+100;
+  const y = Math.random()*canvas.height/2;
+  const color = colors[Math.floor(Math.random()*colors.length)];
+  for(let i=0;i<30;i++){
+    fireworkParticles.push(new Particle(x, y, (Math.random()-0.5)*6, (Math.random()-0.5)*6, Math.random()*4+2,1,color));
+  }
+}
+setInterval(createFirework,800);
+
+// Анимация
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // жидкость
+  liquidParticles.forEach((p,i)=>{
+    p.update();
+    p.draw();
+    if(p.alpha<=0) liquidParticles.splice(i,1);
+  });
+
+  // фейерверки
+  fireworkParticles.forEach((p,i)=>{
+    p.update();
+    p.draw();
+    if(p.alpha<=0) fireworkParticles.splice(i,1);
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>
